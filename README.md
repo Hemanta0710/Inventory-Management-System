@@ -1,6 +1,7 @@
 # Inventory Management System
 
-This is a React frontend for the Inventory Management System (IMS) project.
+This is a React frontend for the Inventory M
+anagement System (IMS) project.
 
 ## Project Overview
 
