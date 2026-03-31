@@ -1,0 +1,47 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/inventory_app_db?options=-c%20TimeZone%3DUTC
+    username: inventory_user
+    password: inventory_pass
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 60000
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: 8080
+  error:
+    include-message: always
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:mySecretKeyForInventoryManagementSystem2024VeryLongKey}
+    expiration: 86400000
+  ai:
+    anthropic-api-key: ${ANTHROPIC_API_KEY:your-api-key-here}
+    model: claude-sonnet-4-6
+    base-url: https://api.anthropic.com/v1/messages
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:5173
+
+logging:
+  level:
+    com.inventory: DEBUG
+    org.springframework.security: INFO
