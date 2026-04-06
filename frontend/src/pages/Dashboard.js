@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { getDashboard, getLowStock, getOrders, getAlerts } from '../services/api';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid, Legend } from 'recharts';
+import { getDashboard, getLowStock, getOrders, getAlerts, getReceivedVsSold } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+
+const formatNrs = (value) => `NRS ${Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const StatCard = ({ label, value, sub, color }) => (
   <div style={{ background: '#fff', borderRadius: 12, padding: '20px 24px',
@@ -18,6 +20,7 @@ export default function Dashboard() {
   const [lowStock, setLowStock] = useState([]);
   const [orders, setOrders] = useState([]);
   const [alerts, setAlerts] = useState([]);
+  const [receivedVsSold, setReceivedVsSold] = useState(null);
 
   useEffect(() => {
     getDashboard().then(r => setStats(r.data)).catch(() => {});
@@ -25,6 +28,14 @@ export default function Dashboard() {
       getLowStock().then(r => setLowStock(r.data)).catch(() => {});
       getOrders().then(r => setOrders(r.data.slice(0, 5))).catch(() => {});
       getAlerts().then(r => setAlerts(r.data.filter(a => !a.isRead).slice(0, 4))).catch(() => {});
+      getReceivedVsSold(7)
+        .then(r => {
+          if (r.data) setReceivedVsSold(r.data);
+        })
+        .catch(err => {
+          console.error('Error fetching received vs sold:', err);
+          setReceivedVsSold({ received: 0, sold: 0 });
+        });
     }
   }, []);
 
@@ -54,15 +65,46 @@ export default function Dashboard() {
           color={stats?.lowStockCount > 0 ? '#ef4444' : '#10b981'}
           sub="Need reordering" />
         <StatCard label="Inventory Value"
-          value={stats ? `$${Number(stats.totalInventoryValue).toLocaleString()}` : '—'}
+          value={stats ? formatNrs(stats.totalInventoryValue) : '—'}
           sub="Total cost value" />
         <StatCard label="Active Products" value={stats?.activeProducts ?? '—'}
           sub="In catalog" color="#3b82f6" />
+        <StatCard label="Potential Profit"
+          value={stats ? formatNrs(stats.potentialProfit) : '—'}
+          sub={stats ? `Margin ${Number(stats.profitMarginPercent || 0).toFixed(2)}%` : 'Based on current stock'}
+          color={(Number(stats?.potentialProfit || 0) >= 0) ? '#10b981' : '#ef4444'} />
       </div>
 
       {/* Charts row */}
       {isManager() && (
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 24 }}>
+          {/* Received vs Sold */}
+          <div style={{ background: '#fff', borderRadius: 12, padding: 24, border: '1px solid #e2e8f0' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 14, fontWeight: 600, color: '#374151' }}>
+              Received vs Sold (7 days)
+            </h3>
+            {receivedVsSold ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={[
+                  { name: 'Received', value: receivedVsSold.received, fill: '#10b981' },
+                  { name: 'Sold', value: receivedVsSold.sold, fill: '#f59e0b' }
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 10, border: '1px solid #dbeafe', background: '#f8fbff' }}
+                    cursor={{ fill: 'rgba(59, 130, 246, 0.08)' }}
+                  />
+                  <Bar dataKey="value" radius={[6,6,0,0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ height: 200, display: 'flex', alignItems: 'center',
+                justifyContent: 'center', color: '#94a3b8', fontSize: 13 }}>Loading...</div>
+            )}
+          </div>
+
           <div style={{ background: '#fff', borderRadius: 12, padding: 24, border: '1px solid #e2e8f0' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: 14, fontWeight: 600, color: '#374151' }}>
               Low stock levels
@@ -70,11 +112,15 @@ export default function Dashboard() {
             {stockData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={stockData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Bar dataKey="qty" fill="#3b82f6" name="Current" radius={[4,4,0,0]} />
-                  <Bar dataKey="min" fill="#fca5a5" name="Min required" radius={[4,4,0,0]} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 10, border: '1px solid #dbeafe', background: '#f8fbff' }}
+                    cursor={{ fill: 'rgba(59, 130, 246, 0.08)' }}
+                  />
+                  <Bar dataKey="qty" fill="#0ea5e9" name="Current" radius={[6,6,0,0]} />
+                  <Bar dataKey="min" fill="#fb7185" name="Min required" radius={[6,6,0,0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -92,14 +138,14 @@ export default function Dashboard() {
             {orderStatusData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
-                  <Pie data={orderStatusData} cx="50%" cy="50%" outerRadius={70}
+                  <Pie data={orderStatusData} cx="50%" cy="50%" innerRadius={34} outerRadius={78}
                     dataKey="value" label={({ name, value }) => `${name}: ${value}`}
                     labelLine={false}>
                     {orderStatusData.map((entry, i) => (
                       <Cell key={i} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip contentStyle={{ borderRadius: 10, border: '1px solid #e2e8f0' }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (

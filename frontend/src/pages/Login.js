@@ -43,9 +43,9 @@ export default function Login() {
       }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ fontSize: 36, marginBottom: 8 }}>⚡</div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#0f172a' }}>StockIQ</h1>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#0f172a' }}>GODAM-E</h1>
           <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 14 }}>
-            Inventory Management System
+            Grocery Inventory Platform
           </p>
         </div>
 

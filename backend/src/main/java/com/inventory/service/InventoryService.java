@@ -1,17 +1,25 @@
 package com.inventory.service;
 
-import com.inventory.dto.StockMovementDTO;
-import com.inventory.dto.StockAdjustRequest;
-import com.inventory.model.*;
-import com.inventory.model.enums.MovementType;
-import com.inventory.repository.*;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.inventory.dto.StockAdjustRequest;
+import com.inventory.dto.StockMovementDTO;
+import com.inventory.model.Product;
+import com.inventory.model.StockMovement;
+import com.inventory.model.User;
+import com.inventory.model.enums.MovementType;
+import com.inventory.repository.ProductRepository;
+import com.inventory.repository.StockMovementRepository;
+import com.inventory.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -101,11 +109,49 @@ public class InventoryService {
         BigDecimal totalValue = productRepo.findByIsActiveTrue().stream()
                 .map(p -> p.getCostPrice().multiply(BigDecimal.valueOf(p.getQuantityOnHand())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalSalesValue = productRepo.findByIsActiveTrue().stream()
+                .map(p -> p.getUnitPrice().multiply(BigDecimal.valueOf(p.getQuantityOnHand())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal potentialProfit = totalSalesValue.subtract(totalValue);
+        BigDecimal marginPercent = totalSalesValue.compareTo(BigDecimal.ZERO) > 0
+                ? potentialProfit.multiply(BigDecimal.valueOf(100)).divide(totalSalesValue, 2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
         return Map.of(
                 "totalProducts", totalProducts,
                 "lowStockCount", lowStockCount,
                 "totalInventoryValue", totalValue.setScale(2, RoundingMode.HALF_UP),
-                "activeProducts", productRepo.findByIsActiveTrue().size()
+                "activeProducts", productRepo.findByIsActiveTrue().size(),
+                "totalSalesValue", totalSalesValue.setScale(2, RoundingMode.HALF_UP),
+                "potentialProfit", potentialProfit.setScale(2, RoundingMode.HALF_UP),
+                "profitMarginPercent", marginPercent
+        );
+    }
+
+    public Map<String, Object> getReceivedVsSold(int days) {
+        LocalDateTime since = LocalDateTime.now().minusDays(Math.max(days, 1));
+        List<Object[]> results = movementRepo.aggregateMovementsByType(since);
+        
+        long received = 0, sold = 0;
+        if (results != null) {
+            for (Object[] row : results) {
+                if (row.length >= 2) {
+                    String movementType = row[0] != null ? row[0].toString().trim().toUpperCase() : "";
+                    Number qtyNum = (Number) row[1];
+                    long qty = qtyNum != null ? qtyNum.longValue() : 0L;
+                    
+                    if ("IN".equals(movementType)) {
+                        received = qty;
+                    } else if ("OUT".equals(movementType)) {
+                        sold = qty;
+                    }
+                }
+            }
+        }
+        
+        return Map.of(
+                "received", received,
+                "sold", sold,
+                "period", days + " days"
         );
     }
 

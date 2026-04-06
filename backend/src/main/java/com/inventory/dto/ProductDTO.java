@@ -9,6 +9,7 @@ public class ProductDTO {
     private String sku;
     private String barcode;
     private String description;
+    private String imageUrl;
     private Long categoryId;
     private String categoryName;
     private Long supplierId;

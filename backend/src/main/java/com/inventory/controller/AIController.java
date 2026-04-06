@@ -1,17 +1,26 @@
 package com.inventory.controller;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.inventory.dto.AiChatRequest;
 import com.inventory.model.AiAlert;
 import com.inventory.repository.AiAlertRepository;
 import com.inventory.repository.UserRepository;
 import com.inventory.service.AIIntegrationService;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/ai")
@@ -23,8 +32,9 @@ public class AIController {
 
     @PostMapping("/chat")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    public ResponseEntity<Map<String, String>> chat(@RequestBody AiChatRequest req) {
-        return ResponseEntity.ok(Map.of("response", aiService.chat(req)));
+    public ResponseEntity<Map<String, String>> chat(@RequestBody AiChatRequest req,
+                                                    @AuthenticationPrincipal UserDetails ud) {
+        return ResponseEntity.ok(Map.of("response", aiService.chat(req, ud.getUsername())));
     }
 
     @GetMapping("/forecast")

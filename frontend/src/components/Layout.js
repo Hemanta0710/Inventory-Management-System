@@ -43,9 +43,9 @@ export default function Layout() {
       }}>
         <div style={{ padding: '20px 16px', borderBottom: '1px solid #1e293b' }}>
           <div style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
-            ⚡ StockIQ
+            ⚡ GODAM-E
           </div>
-          <div style={{ fontSize: 11, color: '#64748b' }}>Inventory Management</div>
+          <div style={{ fontSize: 11, color: '#64748b' }}>Smart Grocery Operations</div>
         </div>
 
         <nav style={{ flex: 1, padding: '12px 8px' }}>

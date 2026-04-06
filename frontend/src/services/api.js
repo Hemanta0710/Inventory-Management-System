@@ -33,9 +33,17 @@ export const deleteProduct = (id) => api.delete(`/products/${id}`);
 export const getLowStock = () => api.get('/products/low-stock');
 export const getProductBarcode = (id) => api.get(`/products/${id}/barcode`);
 export const getByBarcode = (barcode) => api.get(`/products/barcode/${barcode}`);
+export const uploadProductImage = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post('/products/image', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+};
 
 // Inventory
 export const getDashboard = () => api.get('/inventory/dashboard');
+export const getReceivedVsSold = (days = 7) => api.get('/inventory/dashboard/received-vs-sold', { params: { days } });
 export const adjustStock = (id, data) => api.post(`/inventory/products/${id}/adjust`, data);
 export const getMovements = (id) => api.get(`/inventory/products/${id}/movements`);
 export const getEOQ = (id, params) => api.get(`/inventory/products/${id}/eoq`, { params });

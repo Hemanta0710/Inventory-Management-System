@@ -1,16 +1,19 @@
 package com.inventory.service;
 
-import com.inventory.dto.ProductDTO;
-import com.inventory.dto.ProductRequest;
-import com.inventory.model.*;
-import com.inventory.model.enums.MovementType;
-import com.inventory.model.enums.ValuationMethod;
-import com.inventory.repository.*;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.math.BigDecimal;
-import java.util.List;
+
+import com.inventory.dto.ProductDTO;
+import com.inventory.dto.ProductRequest;
+import com.inventory.model.Product;
+import com.inventory.model.enums.ValuationMethod;
+import com.inventory.repository.CategoryRepository;
+import com.inventory.repository.ProductRepository;
+import com.inventory.repository.SupplierRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +46,7 @@ public class ProductService {
         Product product = Product.builder()
                 .name(req.getName()).sku(req.getSku()).barcode(req.getBarcode())
                 .description(req.getDescription())
+            .imageUrl(req.getImageUrl())
                 .unitPrice(req.getUnitPrice()).costPrice(req.getCostPrice())
                 .quantityOnHand(req.getQuantityOnHand() != null ? req.getQuantityOnHand() : 0)
                 .reorderLevel(req.getReorderLevel() != null ? req.getReorderLevel() : 10)
@@ -68,6 +72,7 @@ public class ProductService {
         if (req.getReorderLevel() != null) product.setReorderLevel(req.getReorderLevel());
         if (req.getReorderQuantity() != null) product.setReorderQuantity(req.getReorderQuantity());
         if (req.getLocation() != null) product.setLocation(req.getLocation());
+        if (req.getImageUrl() != null) product.setImageUrl(req.getImageUrl());
         if (req.getCategoryId() != null)
             product.setCategory(categoryRepo.findById(req.getCategoryId()).orElse(null));
         if (req.getSupplierId() != null)
@@ -87,6 +92,7 @@ public class ProductService {
         return ProductDTO.builder()
                 .id(p.getId()).name(p.getName()).sku(p.getSku()).barcode(p.getBarcode())
                 .description(p.getDescription())
+                .imageUrl(p.getImageUrl())
                 .categoryId(p.getCategory() != null ? p.getCategory().getId() : null)
                 .categoryName(p.getCategory() != null ? p.getCategory().getName() : null)
                 .supplierId(p.getSupplier() != null ? p.getSupplier().getId() : null)

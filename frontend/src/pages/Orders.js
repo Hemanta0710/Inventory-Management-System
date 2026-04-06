@@ -3,6 +3,7 @@ import { getOrders, createOrder, approveOrder, receiveOrder, cancelOrder, getSup
 import { useAuth } from '../context/AuthContext';
 
 const statusColor = { PENDING:'#f59e0b', APPROVED:'#10b981', RECEIVED:'#3b82f6', CANCELLED:'#ef4444', DRAFT:'#94a3b8', ORDERED:'#8b5cf6' };
+const formatNrs = (value) => `NRS ${Number(value || 0).toFixed(2)}`;
 
 export default function Orders() {
   const { isAdmin } = useAuth();
@@ -50,7 +51,7 @@ export default function Orders() {
                 <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>{o.orderNo}</td>
                 <td style={{ padding: '12px 16px' }}>{o.supplierName}</td>
                 <td style={{ padding: '12px 16px', color: '#64748b' }}>{o.createdByUsername}</td>
-                <td style={{ padding: '12px 16px', fontWeight: 600 }}>${Number(o.totalAmount).toFixed(2)}</td>
+                <td style={{ padding: '12px 16px', fontWeight: 600 }}>{formatNrs(o.totalAmount)}</td>
                 <td style={{ padding: '12px 16px' }}>
                   <span style={{ background: (statusColor[o.status]||'#94a3b8')+'15', color: statusColor[o.status]||'#94a3b8', padding: '2px 10px', borderRadius: 10, fontSize: 11, fontWeight: 600 }}>{o.status}</span>
                 </td>
@@ -98,7 +99,7 @@ export default function Orders() {
                 </select>
                 <input type="number" placeholder="Qty" style={{ padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 }}
                   value={item.quantity} onChange={e => updateItem(i, 'quantity', e.target.value)} />
-                <input type="number" placeholder="Unit Cost" style={{ padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 }}
+                <input type="number" placeholder="Unit Cost (NRS)" style={{ padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 }}
                   value={item.unitCost} onChange={e => updateItem(i, 'unitCost', e.target.value)} />
               </div>
             ))}

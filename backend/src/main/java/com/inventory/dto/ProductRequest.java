@@ -1,12 +1,14 @@
 package com.inventory.dto;
-import lombok.Data;
 import java.math.BigDecimal;
+
+import lombok.Data;
 @Data
 public class ProductRequest {
     private String name;
     private String sku;
     private String barcode;
     private String description;
+    private String imageUrl;
     private Long categoryId;
     private Long supplierId;
     private BigDecimal unitPrice;

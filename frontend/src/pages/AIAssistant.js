@@ -3,7 +3,7 @@ import { aiChat, getForecast, getAlerts, markAlertRead } from '../services/api';
 
 export default function AIAssistant() {
   const [messages, setMessages] = useState([
-    { role: 'ai', text: 'Hello! I\'m your inventory AI assistant. Ask me anything about your stock levels, reorder suggestions, or demand forecasting.' }
+    { role: 'ai', text: 'Namaste! I am your GODAM-E grocery AI assistant. Ask me about low stock, reorder priorities, profit status, and demand forecasting for beverages, groceries, cosmetics, veg, non-veg, and dry fruits.' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -47,10 +47,11 @@ export default function AIAssistant() {
 
   const severityColor = { CRITICAL: '#ef4444', WARNING: '#f59e0b', INFO: '#3b82f6' };
   const suggestions = [
-    'Which products need reordering this week?',
-    'What is my current inventory health?',
-    'Suggest optimal reorder quantities for low stock items',
-    'Which supplier should I prioritize ordering from?'
+    'Which grocery items need reordering this week?',
+    'Show me low stock in beverages and dry fruits',
+    'Suggest reorder quantities for veg and non veg items',
+    'Which supplier should I prioritize for fresh stock?',
+    'Show me current profit status and margin'
   ];
 
   return (
@@ -134,7 +135,7 @@ export default function AIAssistant() {
                 maxHeight: 200, overflow: 'auto', whiteSpace: 'pre-wrap' }}>{forecast}</div>
             ) : (
               <div style={{ fontSize: 12, color: '#94a3b8' }}>
-                Click Generate to get AI-powered 30-day demand forecast
+                Click Generate to get AI-powered 30-day grocery demand forecast
               </div>
             )}
           </div>

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { getDashboard, getLowStock, getOrders } from '../services/api';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Legend } from 'recharts';
 
+const formatNrs = (value) => `NRS ${Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 export default function Reports() {
   const [stats, setStats]     = useState(null);
   const [lowStock, setLowStock] = useState([]);
@@ -70,7 +72,7 @@ export default function Reports() {
       <div style={{ display: 'flex', gap: 14, marginBottom: 24, flexWrap: 'wrap' }}>
         {card('Total Products', stats?.totalProducts ?? '—')}
         {card('Low Stock Items', stats?.lowStockCount ?? '—', stats?.lowStockCount > 0 ? '#ef4444' : '#10b981')}
-        {card('Inventory Value', stats ? `$${Number(stats.totalInventoryValue).toLocaleString()}` : '—', '#3b82f6')}
+        {card('Inventory Value', stats ? formatNrs(stats.totalInventoryValue) : '—', '#3b82f6')}
         {card('Total Orders', orders.length)}
       </div>
 

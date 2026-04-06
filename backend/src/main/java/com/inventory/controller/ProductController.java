@@ -1,12 +1,29 @@
 package com.inventory.controller;
-import com.inventory.dto.*;
-import com.inventory.service.*;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.*;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.inventory.dto.ProductDTO;
+import com.inventory.dto.ProductRequest;
+import com.inventory.service.BarcodeService;
+import com.inventory.service.FileStorageService;
+import com.inventory.service.ProductService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/products")
@@ -14,6 +31,7 @@ import java.util.Map;
 public class ProductController {
     private final ProductService productService;
     private final BarcodeService barcodeService;
+    private final FileStorageService fileStorageService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
@@ -49,6 +67,13 @@ public class ProductController {
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<ProductDTO> update(@PathVariable Long id, @RequestBody ProductRequest req) {
         return ResponseEntity.ok(productService.update(id, req));
+    }
+
+    @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestPart("file") MultipartFile file) {
+        String imageUrl = fileStorageService.saveProductImage(file);
+        return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
     }
 
     @DeleteMapping("/{id}")

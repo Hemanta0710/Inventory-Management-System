@@ -1,19 +1,46 @@
-# Inventory-Management-System (StockIQ)
+# GODAM-E
 
-The seventh semester project for building a full-stack inventory management system.
+The seventh semester project for building a full-stack grocery inventory platform.
 
-Full-stack inventory management with Java Spring Boot backend, React frontend,
-PostgreSQL + Redis via Docker, and Claude AI integration.
+Full-stack grocery inventory management with Java Spring Boot backend, React frontend,
+PostgreSQL + Redis via Docker, and TimeGPT-enabled AI forecasting.
+
+---
+
+## 🔧 Environment Configuration
+
+This project uses a `.env` file for centralized configuration across Docker, backend, and frontend.
+
+### Quick Setup
+
+1. **Copy the example environment file:**
+```bash
+cp .env.example .env
+```
+
+2. **Customize .env if needed** (optional for local development):
+```bash
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=inventory_db
+DB_USERNAME=inventory_user
+DB_PASSWORD=inventory_pass
+
+# Backend
+BACKEND_PORT=8080
+FRONTEND_PORT=3001
+
+# AI Integration (optional)
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+```
+
+**Note:** `.env` is in `.gitignore` and **never committed**. Each environment (dev/staging/production) has its own `.env`.
 
 ---
 
 ## Prerequisites
-- Docker Desktop (installed and running)
-- Java 21 (JDK)
-- Node.js 18+
-- Maven 3.9+
 
----
 
 ## Step 1 — Start the Database with Docker
 
@@ -22,6 +49,8 @@ cd docker
 docker compose up -d
 ```
 
+Important: backend login and all APIs depend on PostgreSQL. If Docker is not running, login will fail because `/api/auth/login` cannot connect to the database.
+
 This starts:
 | Service    | URL / Port                          | Credentials                          |
 |------------|-------------------------------------|--------------------------------------|
@@ -29,7 +58,6 @@ This starts:
 | Redis      | localhost:6379                      | no auth                              |
 | pgAdmin    | http://localhost:5050               | admin@inventory.com / admin123       |
 
-Verify containers are running:
 ```bash
 docker compose ps
 ```
@@ -64,6 +92,8 @@ export ANTHROPIC_API_KEY=sk-ant-xxxx
 cd backend
 mvn spring-boot:run
 ```
+
+Use this exact command (no space after the colon). `mvn spring-boot: run` is invalid and will fail.
 
 The app starts on **http://localhost:8080**
 

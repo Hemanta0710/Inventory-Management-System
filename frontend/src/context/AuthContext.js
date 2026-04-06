@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { login as apiLogin } from '../services/api';
 
 const AuthContext = createContext(null);
@@ -9,7 +9,13 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
-    if (stored) setUser(JSON.parse(stored));
+    if (stored) {
+      try {
+        setUser(JSON.parse(stored));
+      } catch {
+        localStorage.removeItem('user');
+      }
+    }
     setLoading(false);
   }, []);
 
@@ -30,8 +36,18 @@ export function AuthProvider({ children }) {
   const isManager = () => user?.role === 'ROLE_MANAGER' || isAdmin();
   const isEmployee = () => !!user;
 
+  const value = useMemo(() => ({
+    user,
+    login,
+    logout,
+    loading,
+    isAdmin,
+    isManager,
+    isEmployee
+  }), [user, loading]);
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, isAdmin, isManager, isEmployee }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

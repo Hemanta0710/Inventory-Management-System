@@ -1,5 +1,4 @@
-git pull origin main --rebase
-git push -u origin main-- V1__initial_schema.sql
+-- V1__initial_schema.sql
 
 -- Users
 CREATE TABLE users (
