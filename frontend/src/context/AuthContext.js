@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { login as apiLogin } from '../services/api';
+import { login as apiLogin, logout as apiLogout } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -27,7 +27,12 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await apiLogout();
+    } catch {
+      // Even if backend logout fails, clear local state so user is signed out locally.
+    }
     localStorage.clear();
     setUser(null);
   };

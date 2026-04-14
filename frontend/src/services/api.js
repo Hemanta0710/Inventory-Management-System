@@ -21,6 +21,7 @@ api.interceptors.response.use(
 
 // Auth
 export const login = (data) => api.post('/auth/login', data);
+export const logout = () => api.post('/auth/logout');
 export const getUsers = () => api.get('/auth/users');
 export const createUser = (data) => api.post('/auth/users', data);
 
@@ -67,5 +68,13 @@ export const getForecast = () => api.get('/ai/forecast');
 export const getAlerts = () => api.get('/ai/alerts');
 export const markAlertRead = (id) => api.patch(`/ai/alerts/${id}/read`);
 export const getUnreadCount = () => api.get('/ai/alerts/unread-count');
+
+// Audit Logs
+export const getAllAuditLogs = () => api.get('/audit');
+export const getAuditLogsByEntityType = (entityType) => api.get(`/audit/entity-type/${entityType}`);
+export const getAuditLogsByUserId = (userId) => api.get(`/audit/user/${userId}`);
+export const getAuditLogsByAction = (action) => api.get(`/audit/action/${action}`);
+export const getAuditLogsForEntity = (entityType, entityId) => api.get(`/audit/entity/${entityType}/${entityId}`);
+export const getRecentAuditLogs = (days = 7) => api.get('/audit/recent', { params: { days } });
 
 export default api;

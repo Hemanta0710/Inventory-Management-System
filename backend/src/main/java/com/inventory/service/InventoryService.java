@@ -28,6 +28,7 @@ public class InventoryService {
     private final ProductRepository productRepo;
     private final StockMovementRepository movementRepo;
     private final UserRepository userRepo;
+    private final AuditLogWriterService auditLogWriterService;
 
     @Transactional
     public StockMovementDTO adjustStock(Long productId, StockAdjustRequest req, String username) {
@@ -37,6 +38,7 @@ public class InventoryService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         MovementType type = MovementType.valueOf(req.getMovementType());
+        int oldQty = product.getQuantityOnHand();
         int newQty = switch (type) {
             case IN, RETURN -> product.getQuantityOnHand() + req.getQuantity();
             case OUT, TRANSFER -> {
@@ -59,6 +61,13 @@ public class InventoryService {
                 .notes(req.getNotes())
                 .build();
         movement = movementRepo.save(movement);
+        auditLogWriterService.logByUsername(
+            username,
+            "STOCK_" + type.name(),
+            "PRODUCT",
+            product.getId(),
+            "quantityOnHand=" + oldQty,
+            "quantityOnHand=" + newQty + ", movementQty=" + req.getQuantity());
         return toDTO(movement);
     }
 

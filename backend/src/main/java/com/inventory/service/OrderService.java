@@ -1,20 +1,32 @@
 package com.inventory.service;
 
-import com.inventory.dto.OrderDTO;
-import com.inventory.dto.CreateOrderRequest;
-import com.inventory.model.*;
-import com.inventory.model.enums.MovementType;
-import com.inventory.model.enums.OrderStatus;
-import com.inventory.repository.*;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.inventory.dto.CreateOrderRequest;
+import com.inventory.dto.OrderDTO;
+import com.inventory.model.OrderItem;
+import com.inventory.model.Product;
+import com.inventory.model.PurchaseOrder;
+import com.inventory.model.StockMovement;
+import com.inventory.model.Supplier;
+import com.inventory.model.User;
+import com.inventory.model.enums.MovementType;
+import com.inventory.model.enums.OrderStatus;
+import com.inventory.repository.ProductRepository;
+import com.inventory.repository.PurchaseOrderRepository;
+import com.inventory.repository.StockMovementRepository;
+import com.inventory.repository.SupplierRepository;
+import com.inventory.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +37,7 @@ public class OrderService {
     private final SupplierRepository supplierRepo;
     private final UserRepository userRepo;
     private final StockMovementRepository movementRepo;
+        private final AuditLogWriterService auditLogWriterService;
     private static final AtomicInteger counter = new AtomicInteger(1000);
 
     @Transactional
@@ -59,7 +72,15 @@ public class OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         order.setTotalAmount(total);
 
-        return toDTO(orderRepo.save(order));
+        PurchaseOrder saved = orderRepo.save(order);
+        auditLogWriterService.logByUsername(
+                username,
+                "CREATE_ORDER",
+                "ORDER",
+                saved.getId(),
+                null,
+                "orderNo=" + saved.getOrderNo() + ", totalAmount=" + saved.getTotalAmount());
+        return toDTO(saved);
     }
 
     @Transactional
@@ -68,9 +89,18 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         User approver = userRepo.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        String oldStatus = order.getStatus().name();
         order.setStatus(OrderStatus.APPROVED);
         order.setApprovedBy(approver);
-        return toDTO(orderRepo.save(order));
+        PurchaseOrder saved = orderRepo.save(order);
+        auditLogWriterService.logByUsername(
+                username,
+                "APPROVE_ORDER",
+                "ORDER",
+                saved.getId(),
+                "status=" + oldStatus,
+                "status=" + saved.getStatus().name());
+        return toDTO(saved);
     }
 
     @Transactional
@@ -99,17 +129,35 @@ public class OrderService {
             item.setQuantityReceived(item.getQuantityOrdered());
         });
 
+        String oldStatus = order.getStatus().name();
         order.setStatus(OrderStatus.RECEIVED);
         order.setReceivedDate(LocalDate.now());
-        return toDTO(orderRepo.save(order));
+        PurchaseOrder saved = orderRepo.save(order);
+        auditLogWriterService.logByUsername(
+                username,
+                "RECEIVE_ORDER",
+                "ORDER",
+                saved.getId(),
+                "status=" + oldStatus,
+                "status=" + saved.getStatus().name() + ", receivedDate=" + saved.getReceivedDate());
+        return toDTO(saved);
     }
 
     @Transactional
-    public OrderDTO cancelOrder(Long id) {
+        public OrderDTO cancelOrder(Long id, String username) {
         PurchaseOrder order = orderRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
+                String oldStatus = order.getStatus().name();
         order.setStatus(OrderStatus.CANCELLED);
-        return toDTO(orderRepo.save(order));
+                PurchaseOrder saved = orderRepo.save(order);
+                auditLogWriterService.logByUsername(
+                                username,
+                                "CANCEL_ORDER",
+                                "ORDER",
+                                saved.getId(),
+                                "status=" + oldStatus,
+                                "status=" + saved.getStatus().name());
+                return toDTO(saved);
     }
 
     public List<OrderDTO> getAllOrders() {

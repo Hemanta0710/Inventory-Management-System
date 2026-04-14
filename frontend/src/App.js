@@ -13,6 +13,7 @@ const Suppliers = lazy(() => import('./pages/Suppliers'));
 const AIAssistant = lazy(() => import('./pages/AIAssistant'));
 const Users = lazy(() => import('./pages/Users'));
 const Reports = lazy(() => import('./pages/Reports'));
+const AuditLogs = lazy(() => import('./pages/AuditLogs'));
 
 function PageLoader() {
   return <div className="loading">Loading page...</div>;
@@ -45,6 +46,8 @@ export default function App() {
                 <PrivateRoute roles={['ROLE_ADMIN','ROLE_MANAGER']}><AIAssistant /></PrivateRoute>} />
               <Route path="reports" element={
                 <PrivateRoute roles={['ROLE_ADMIN','ROLE_MANAGER']}><Reports /></PrivateRoute>} />
+              <Route path="audit" element={
+                <PrivateRoute roles={['ROLE_ADMIN','ROLE_MANAGER']}><AuditLogs /></PrivateRoute>} />
               <Route path="users" element={
                 <PrivateRoute roles={['ROLE_ADMIN']}><Users /></PrivateRoute>} />
             </Route>

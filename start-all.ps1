@@ -47,20 +47,22 @@ foreach ($line in $env_content) {
     }
 }
 
-Start-Process -NoNewWindow -FilePath "pwsh" -ArgumentList @"
-    Set-Location "$(Get-Location)\backend"
-    mvn spring-boot:run
-"@ -PassThru | Out-Null
+Start-Process -FilePath "pwsh" -ArgumentList @(
+    "-NoExit",
+    "-Command",
+    "Set-Location '$((Join-Path (Get-Location) 'backend'))'; mvn spring-boot:run"
+) -PassThru | Out-Null
 
 Write-Host "✅ Backend starting in background. Check logs in Spring Boot terminal." -ForegroundColor Green
 
 Write-Host ""
 Write-Host "Step 3: Starting React frontend (port 3001)..." -ForegroundColor Yellow
 
-Start-Process -NoNewWindow -FilePath "pwsh" -ArgumentList @"
-    Set-Location "$(Get-Location)\frontend"
-    npm run dev -- --port 3001
-"@ -PassThru | Out-Null
+Start-Process -FilePath "pwsh" -ArgumentList @(
+    "-NoExit",
+    "-Command",
+    "Set-Location '$((Join-Path (Get-Location) 'frontend'))'; npm run dev -- --port 3001"
+) -PassThru | Out-Null
 
 Write-Host "✅ Frontend starting in background." -ForegroundColor Green
 
@@ -76,5 +78,5 @@ Write-Host "║  Demo Login:   admin / Admin@123                          ║" -
 Write-Host "║                manager1 / Admin@123                       ║" -ForegroundColor Cyan
 Write-Host "║                employee1 / Admin@123                      ║" -ForegroundColor Cyan
 Write-Host "║                                                            ║" -ForegroundColor Green
-Write-Host "║  To stop services, run: stop-all.ps1                      ║" -ForegroundColor Yellow
+Write-Host "║  To stop services, run: .\\stop-all.ps1                    ║" -ForegroundColor Yellow
 Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Green

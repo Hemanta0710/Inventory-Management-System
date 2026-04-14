@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.inventory.dto.AiAlertDTO;
 import com.inventory.dto.AiChatRequest;
-import com.inventory.model.AiAlert;
 import com.inventory.repository.AiAlertRepository;
 import com.inventory.repository.UserRepository;
 import com.inventory.service.AIIntegrationService;
@@ -52,9 +52,23 @@ public class AIController {
 
     @GetMapping("/alerts")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    public ResponseEntity<List<AiAlert>> getAlerts(@AuthenticationPrincipal UserDetails ud) {
+    public ResponseEntity<List<AiAlertDTO>> getAlerts(@AuthenticationPrincipal UserDetails ud) {
         var user = userRepo.findByUsername(ud.getUsername()).orElseThrow();
-        return ResponseEntity.ok(alertRepo.findByCreatedForIdOrderByCreatedAtDesc(user.getId()));
+        var alerts = alertRepo.findByCreatedForIdOrderByCreatedAtDesc(user.getId())
+                .stream()
+                .map(a -> AiAlertDTO.builder()
+                        .id(a.getId())
+                        .productId(a.getProduct() != null ? a.getProduct().getId() : null)
+                        .productName(a.getProduct() != null ? a.getProduct().getName() : null)
+                        .alertType(a.getAlertType() != null ? a.getAlertType().name() : null)
+                        .severity(a.getSeverity() != null ? a.getSeverity().name() : null)
+                        .title(a.getTitle())
+                        .message(a.getMessage())
+                        .isRead(a.getIsRead())
+                        .createdAt(a.getCreatedAt())
+                    .build())
+                        .toList();
+        return ResponseEntity.ok(alerts);
     }
 
     @PatchMapping("/alerts/{id}/read")

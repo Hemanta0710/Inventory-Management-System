@@ -22,6 +22,7 @@ public class ProductService {
     private final ProductRepository productRepo;
     private final CategoryRepository categoryRepo;
     private final SupplierRepository supplierRepo;
+    private final AuditLogWriterService auditLogWriterService;
 
     public List<ProductDTO> getAllProducts() {
         return productRepo.findByIsActiveTrue().stream().map(this::toDTO).toList();
@@ -59,13 +60,24 @@ public class ProductService {
             product.setCategory(categoryRepo.findById(req.getCategoryId()).orElse(null));
         if (req.getSupplierId() != null)
             product.setSupplier(supplierRepo.findById(req.getSupplierId()).orElse(null));
-        return toDTO(productRepo.save(product));
+        Product saved = productRepo.save(product);
+        auditLogWriterService.log(
+                "CREATE_PRODUCT",
+                "PRODUCT",
+                saved.getId(),
+                null,
+                "name=" + saved.getName() + ", sku=" + saved.getSku() + ", qty=" + saved.getQuantityOnHand());
+        return toDTO(saved);
     }
 
     @Transactional
     public ProductDTO update(Long id, ProductRequest req) {
         Product product = productRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
+        String oldSnapshot = "name=" + product.getName()
+            + ", unitPrice=" + product.getUnitPrice()
+            + ", costPrice=" + product.getCostPrice()
+            + ", qty=" + product.getQuantityOnHand();
         if (req.getName() != null) product.setName(req.getName());
         if (req.getUnitPrice() != null) product.setUnitPrice(req.getUnitPrice());
         if (req.getCostPrice() != null) product.setCostPrice(req.getCostPrice());
@@ -77,7 +89,13 @@ public class ProductService {
             product.setCategory(categoryRepo.findById(req.getCategoryId()).orElse(null));
         if (req.getSupplierId() != null)
             product.setSupplier(supplierRepo.findById(req.getSupplierId()).orElse(null));
-        return toDTO(productRepo.save(product));
+        Product saved = productRepo.save(product);
+        String newSnapshot = "name=" + saved.getName()
+                + ", unitPrice=" + saved.getUnitPrice()
+                + ", costPrice=" + saved.getCostPrice()
+                + ", qty=" + saved.getQuantityOnHand();
+        auditLogWriterService.log("UPDATE_PRODUCT", "PRODUCT", saved.getId(), oldSnapshot, newSnapshot);
+        return toDTO(saved);
     }
 
     @Transactional
@@ -86,6 +104,12 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Product not found"));
         product.setIsActive(false);
         productRepo.save(product);
+        auditLogWriterService.log(
+            "DELETE_PRODUCT",
+            "PRODUCT",
+            product.getId(),
+            "name=" + product.getName() + ", isActive=true",
+            "name=" + product.getName() + ", isActive=false");
     }
 
     public ProductDTO toDTO(Product p) {

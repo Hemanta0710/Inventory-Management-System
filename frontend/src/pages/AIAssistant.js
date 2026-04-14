@@ -132,7 +132,7 @@ export default function AIAssistant() {
             </div>
             {forecast ? (
               <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.7,
-                maxHeight: 200, overflow: 'auto', whiteSpace: 'pre-wrap' }}>{forecast}</div>
+                maxHeight: 800, overflow: 'auto', whiteSpace: 'pre-wrap' }}>{forecast}</div>
             ) : (
               <div style={{ fontSize: 12, color: '#94a3b8' }}>
                 Click Generate to get AI-powered 30-day grocery demand forecast

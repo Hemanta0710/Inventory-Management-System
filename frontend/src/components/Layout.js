@@ -18,7 +18,7 @@ export default function Layout() {
     }
   }, []);
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const handleLogout = async () => { await logout(); navigate('/login'); };
 
   const navItems = [
     { to: '/', label: 'Dashboard', icon: '▦', always: true },
@@ -28,6 +28,7 @@ export default function Layout() {
     { to: '/suppliers', label: 'Suppliers', icon: '⊙', manager: true },
     { to: '/ai', label: 'AI Assistant', icon: '✦', manager: true, badge: unread },
     { to: '/reports', label: 'Reports', icon: '◫', manager: true },
+    { to: '/audit', label: 'Audit Logs', icon: '📋', manager: true },
     { to: '/users', label: 'Users', icon: '◉', admin: true },
   ];
 
